@@ -1,0 +1,46 @@
+- name: Install docker
+  hosts: ubuntu
+  become: true
+
+  vars:
+    service_account_file: /Users/dwlee/Documents/ansible/bright-eon-368611-9c76303809ff.json
+    project: bright-eon-368611
+    auth_kind: serviceaccount
+    scopes:
+      - https://www.googleapis.com/auth/compute
+      
+  tasks:
+    - name: Update the package list
+      apt:
+        update_cache: yes
+
+    - name: Install Docker dependencies
+      package:
+        name: "{{ item }}"
+        state: present
+      with_items:
+        - apt-transport-https
+        - ca-certificates
+        - curl
+        - gnupg-agent
+        - software-properties-common
+
+    - name: Add Docker's official GPG key
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+
+    - name: Add Docker repository to apt sources
+      apt_repository:
+        repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_lsb.codename }} stable
+        state: present
+
+    - name: Install Docker engine
+      package:
+        name: docker-ce
+        state: present
+
+    - name: Start Docker service
+      service:
+        name: docker
+        state: started
